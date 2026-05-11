@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { Building2, Mail, KeyRound, Loader2, ArrowRight, X } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
@@ -14,7 +15,7 @@ export default function LoginPage({ onLoginSuccess, onClose }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = '${API_BASE_URL}/api/auth';
+  const authBaseUrl = `${API_BASE_URL}/api/auth`;
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +28,7 @@ export default function LoginPage({ onLoginSuccess, onClose }: LoginPageProps) {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/send-otp`, {
+      const response = await fetch(`${authBaseUrl}/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -54,7 +55,7 @@ export default function LoginPage({ onLoginSuccess, onClose }: LoginPageProps) {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+      const response = await fetch(`${authBaseUrl}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp_code: otp }),

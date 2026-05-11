@@ -1,4 +1,5 @@
 import { Heart } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 import { useState, useEffect } from 'react';
 
 interface FavoriteButtonProps {
@@ -68,7 +69,7 @@ export default function FavoriteButton({
           setIsFavorite(false);
         }
       } else {
-        const response = await fetch('${API_BASE_URL}/api/profile/favorites/add', {
+        const response = await fetch(`${API_BASE_URL}/api/profile/favorites/add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

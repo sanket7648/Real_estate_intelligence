@@ -27,7 +27,7 @@ export default function MapPage() {
   useEffect(() => {
     // Fetch 200 real properties to plot on the map
     const url = cityFilter === 'All' 
-      ? '${API_BASE_URL}/api/properties/?limit=200' 
+      ? `${API_BASE_URL}/api/properties/?limit=200`
       : `${API_BASE_URL}/api/properties/?city=${cityFilter}&limit=200`;
 
     fetch(url)

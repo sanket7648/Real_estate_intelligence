@@ -45,7 +45,7 @@ export default function Chatbot() {
     setIsTyping(true);
 
     try {
-      const response = await fetch('${API_BASE_URL}/api/chat/', {
+      const response = await fetch(`${API_BASE_URL}/api/chat/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // Send the message AND the current memory context

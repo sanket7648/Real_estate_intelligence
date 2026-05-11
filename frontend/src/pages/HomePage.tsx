@@ -36,7 +36,7 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch('${API_BASE_URL}/api/properties/');
+        const response = await fetch(`${API_BASE_URL}/api/properties/`);
         if (response.ok) {
           const data = await response.json();
           setLiveProperties(data.slice(0, 3)); // Only show top 3 on homepage

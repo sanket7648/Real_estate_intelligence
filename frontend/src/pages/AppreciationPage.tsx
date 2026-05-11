@@ -16,7 +16,7 @@ export default function AppreciationPage() {
   const fetchForecast = async () => {
     setLoading(true);
     try {
-      const response = await fetch('${API_BASE_URL}/api/market/forecast', {
+      const response = await fetch(`${API_BASE_URL}/api/market/forecast`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -1,7 +1,17 @@
 import pandas as pd
+import math
+from dotenv import load_dotenv
+import os
+
+# 1. CRITICAL FIX: Load the .env file FIRST before importing database!
+load_dotenv()
+
+# 2. Now import the database connection (it will now see the Neon URL)
 from database import SessionLocal
 import models
-import math
+
+# Quick debug print to verify it's using Neon
+print(f"Connecting to: {os.getenv('DATABASE_URL')[:30]}...")
 
 print("Loading CSV...")
 df = pd.read_csv('real_estate_dataset_20000.csv')
@@ -35,7 +45,7 @@ try:
 
     db.bulk_insert_mappings(models.Property, records)
     db.commit()
-    print("✅ Successfully imported all 20,000 properties into the database!")
+    print("✅ Successfully imported all 20,000 properties into the Neon database!")
 
 except Exception as e:
     print(f"❌ Error importing data: {e}")

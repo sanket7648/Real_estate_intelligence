@@ -81,7 +81,7 @@ export default function ProfilePage() {
     setLoading(true);
     
     try {
-      await fetch('${API_BASE_URL}/api/profile/', {
+      await fetch(`${API_BASE_URL}/api/profile/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile)

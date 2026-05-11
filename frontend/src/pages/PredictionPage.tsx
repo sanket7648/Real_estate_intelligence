@@ -34,7 +34,7 @@ export default function PredictionPage() {
     
     try {
       // Calling the REAL Machine Learning API
-      const response = await fetch('${API_BASE_URL}/api/ml/predict', {
+      const response = await fetch(`${API_BASE_URL}/api/ml/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

@@ -12,7 +12,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('${API_BASE_URL}/api/market/dashboard');
+        const response = await fetch(`${API_BASE_URL}/api/market/dashboard`);
         if (response.ok) {
           const result = await response.json();
           setData(result);
