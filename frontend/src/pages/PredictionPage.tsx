@@ -4,6 +4,8 @@ import { CITIES, LOCATIONS, AMENITIES } from '../data/mockData';
 import { PredictionInput, PredictionResult, Property } from '../types';
 import PropertyCard from '../components/ui/PropertyCard';
 import ScoreGauge from '../components/ui/ScoreGauge';
+import FavoriteButton from '../components/ui/FavoriteButton';
+import { API_BASE_URL } from '../config';
 
 const FURNISHING_OPTIONS = ['Furnished', 'Semi-Furnished', 'Unfurnished'];
 const PROPERTY_TYPES = ['Apartment', 'Villa', 'Penthouse', 'Studio'];
@@ -32,7 +34,7 @@ export default function PredictionPage() {
     
     try {
       // Calling the REAL Machine Learning API
-      const response = await fetch('http://localhost:8000/api/ml/predict', {
+      const response = await fetch('${API_BASE_URL}/api/ml/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -321,21 +323,7 @@ export default function PredictionPage() {
                 </div>
               </div>
 
-              <div className="glass rounded-2xl p-6 border border-white/8">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-sm uppercase">
-                  <TrendingUp size={16} className="text-sky-400" /> Active Database Matches
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Render the actual real properties from the Postgres DB */}
-                  {result.bestAlternatives && result.bestAlternatives.length > 0 ? (
-                    result.bestAlternatives.map((p: any) => (
-                      <PropertyCard key={p.id} property={p} compact />
-                    ))
-                  ) : (
-                    <div className="col-span-3 py-4 text-center text-slate-500 text-xs">Scanning 20,000 rows... No exact BHK matches found in this locality.</div>
-                  )}
-                </div>
-              </div>
+
             </>
           )}
         </div>

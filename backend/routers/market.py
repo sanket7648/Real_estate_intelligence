@@ -6,7 +6,7 @@ import random
 import math
 from pydantic import BaseModel
 from typing import Optional
-import math
+from datetime import datetime
 
 router = APIRouter(prefix="/api/market", tags=["Market Intelligence"])
 
@@ -95,40 +95,52 @@ def get_dashboard_data(db: Session = Depends(database.get_db)):
 class ForecastRequest(BaseModel):
     current_price: int
     city: str
+    location: str
+    years: int
 
 @router.post("/forecast")
 def get_investment_forecast(data: ForecastRequest, db: Session = Depends(database.get_db)):
-    # Calculate the actual average price per sqft for this specific city from your DB
-    city_avg_row = db.query(func.avg(models.Property.price / models.Property.sqft)).filter(models.Property.city == data.city).scalar()
-    city_avg = float(city_avg_row) if city_avg_row else 8000.0
+    # 1. Calculate actual average price for this SPECIFIC LOCATION (Area)
+    loc_avg_row = db.query(func.avg(models.Property.price / models.Property.sqft)).filter(
+        models.Property.city == data.city,
+        models.Property.location == data.location
+    ).scalar()
     
-    # Calculate global average to see if this city is over/under performing
+    # Fallback to city average if the specific location has no data
+    if not loc_avg_row:
+        loc_avg_row = db.query(func.avg(models.Property.price / models.Property.sqft)).filter(
+            models.Property.city == data.city
+        ).scalar()
+        
+    local_avg = float(loc_avg_row) if loc_avg_row else 8000.0
+    
+    # 2. Calculate global average to see if this neighborhood is over/under performing
     global_avg_row = db.query(func.avg(models.Property.price / models.Property.sqft)).scalar()
     global_avg = float(global_avg_row) if global_avg_row else 8000.0
 
-    # Dynamic Growth Rates based on real data comparison
-    # If the city is cheaper than the global average, it has higher growth potential (emerging market)
-    # If it's more expensive, growth is steadier (mature market)
-    market_ratio = global_avg / city_avg if city_avg > 0 else 1.0
-    
-    base_cagr = 0.05 # 5% baseline
-    adjusted_cagr = base_cagr * (market_ratio ** 0.5) # Dampen extreme variance
+    # 3. Dynamic Growth Rates
+    market_ratio = global_avg / local_avg if local_avg > 0 else 1.0
+    base_cagr = 0.05 
+    adjusted_cagr = base_cagr * (market_ratio ** 0.5) 
     
     cons_rate = 1.0 + max(0.03, adjusted_cagr)
     mod_rate = 1.0 + max(0.06, adjusted_cagr + 0.03)
     opt_rate = 1.0 + max(0.09, adjusted_cagr + 0.06)
     
-    years = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    # 4. Generate the dynamic X-Axis (Years) based on user's slider
+    current_year = datetime.now().year
+    years_array = [current_year + i for i in range(data.years + 1)]
+    
     cons, mod, opt = [data.current_price], [data.current_price], [data.current_price]
     
-    # Apply standard compounding
-    for _ in range(6):
+    # 5. Apply standard compounding for the EXACT number of years requested
+    for _ in range(data.years):
         cons.append(int(cons[-1] * cons_rate))
         mod.append(int(mod[-1] * mod_rate))
         opt.append(int(opt[-1] * opt_rate))
         
     return {
-        "years": years,
+        "years": years_array,
         "conservative": cons,
         "moderate": mod,
         "optimistic": opt
@@ -160,24 +172,14 @@ def get_area_recommendations(city: str = "Bangalore", db: Session = Depends(data
         avg_age = float(loc.avg_age)
         
         # --- Calculate Real Scores ---
-        
-        # Affordability: Higher score if price is lower than the city average
         affordability = min(max(int((city_avg_price / avg_price) * 50), 10), 98)
-        
-        # Demand/Connectivity proxy: More listings generally correlate with high-demand, well-connected areas
         connectivity = min(max(int(math.log(listings) * 20), 40), 95)
-        
-        # New Development (Safety/Amenities proxy): Newer buildings (lower age) generally have better modern amenities/security
         amenities_score = min(max(int(100 - (avg_age * 2)), 50), 98)
-        
-        # Overall Weighted Score
         overall = int((affordability * 0.4) + (connectivity * 0.3) + (amenities_score * 0.3))
         
-        # Generate dynamic description based on the real stats
         desc = f"A {'premium' if avg_price > city_avg_price else 'value-driven'} neighborhood with {listings} active listings. "
         desc += f"Properties here have an average age of {round(avg_age, 1)} years."
 
-        # Assign a generic image based on whether it's premium or affordable
         img_url = "https://images.pexels.com/photos/2635038/pexels-photo-2635038.jpeg?auto=compress&cs=tinysrgb&w=600" if avg_price > city_avg_price else "https://images.pexels.com/photos/1396132/pexels-photo-1396132.jpeg?auto=compress&cs=tinysrgb&w=600"
 
         recommendations.append({
@@ -185,7 +187,7 @@ def get_area_recommendations(city: str = "Bangalore", db: Session = Depends(data
             "city": city,
             "affordabilityScore": affordability,
             "connectivityScore": connectivity,
-            "safetyScore": amenities_score, # Proxy using building age/modernity
+            "safetyScore": amenities_score,
             "amenitiesScore": amenities_score,
             "avgPrice": int(avg_price),
             "overallScore": overall,
@@ -193,6 +195,5 @@ def get_area_recommendations(city: str = "Bangalore", db: Session = Depends(data
             "image": img_url
         })
 
-    # Sort by highest overall score and return the top 6 areas
     recommendations = sorted(recommendations, key=lambda x: x['overallScore'], reverse=True)
     return recommendations[:6]

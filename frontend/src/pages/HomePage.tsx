@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Search, ArrowRight, TrendingUp, Brain, Shield, Zap, MapPin, BarChart3, ChevronRight, Star } from 'lucide-react';
-import { marketInsights, trendData } from '../data/mockData';
+import { marketInsights } from '../data/mockData';
 import PropertyCard from '../components/ui/PropertyCard';
-import LineChart from '../components/ui/LineChart';
 import { Page, Property } from '../types';
+import { API_BASE_URL } from '../config';
 
 interface HomePageProps {
   onNavigate: (page: Page) => void;
@@ -12,10 +12,8 @@ interface HomePageProps {
 }
 
 const stats = [
-  { value: '2.4M+', label: 'Properties Analyzed' },
-  { value: '99.2%', label: 'AI Accuracy' },
-  { value: '48', label: 'Cities Covered' },
-  { value: '₹12Cr+', label: 'Deals Facilitated' },
+  { value: '20000+', label: 'Properties Analyzed' },
+  { value: '8', label: 'Cities Covered' },
 ];
 
 const features = [
@@ -29,7 +27,6 @@ const features = [
 
 export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false }: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCity, setActiveCity] = useState('Mumbai');
   
   // State to hold properties from the backend
   const [liveProperties, setLiveProperties] = useState<Property[]>([]);
@@ -39,7 +36,7 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/properties/');
+        const response = await fetch('${API_BASE_URL}/api/properties/');
         if (response.ok) {
           const data = await response.json();
           setLiveProperties(data.slice(0, 3)); // Only show top 3 on homepage
@@ -53,8 +50,6 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
     fetchProperties();
   }, []);
 
-  const cityData = trendData[activeCity.toLowerCase() as keyof typeof trendData] || trendData.mumbai;
-
   return (
     <div className="min-h-screen">
       {/* Navigation Bar */}
@@ -62,7 +57,7 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Brain size={24} className="text-sky-400" />
-            <span className="font-bold text-white text-lg">Real Estate AI</span>
+            <span className="font-bold text-white text-lg">HomeSite AI</span>
           </div>
           {!isAuthenticated && onSignIn && (
             <button
@@ -88,10 +83,6 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
           style={{ background: 'radial-gradient(circle, #00d4ff, transparent)', filter: 'blur(30px)', animationDelay: '2s' }} />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-sky-500/30 text-sky-400 text-sm font-medium mb-6 animate-slide-up">
-            <Zap size={14} className="animate-pulse" />
-            Powered by Advanced Machine Learning
-          </div>
 
           <h1 className="text-5xl md:text-6xl font-bold font-grotesk text-white leading-tight mb-6 animate-slide-up delay-100">
             AI-Powered Real Estate{' '}
@@ -135,9 +126,10 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up delay-500">
+        {/* Centered Flexbox for the Stats */}
+        <div className="max-w-3xl mx-auto mt-16 flex flex-wrap justify-center gap-6 animate-slide-up delay-500">
           {stats.map((s, i) => (
-            <div key={i} className="glass rounded-2xl p-4 text-center border border-white/8">
+            <div key={i} className="glass rounded-2xl p-5 text-center border border-white/8 flex-1 min-w-[200px] max-w-[280px]">
               <div className="text-2xl font-bold text-white font-grotesk neon-text">{s.value}</div>
               <div className="text-xs text-slate-400 mt-1">{s.label}</div>
             </div>
@@ -190,70 +182,43 @@ export default function HomePage({ onNavigate, onSignIn, isAuthenticated = false
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {marketInsights.map((m, i) => (
-                <div key={i} className="glass rounded-2xl p-5 border border-white/8 card-hover">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-white">{m.city}</h3>
-                    <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
-                      m.priceChange > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'
-                    }`}>
-                      <TrendingUp size={11} />
-                      +{m.priceChange}%
-                    </span>
-                  </div>
-                  <div className="text-xl font-bold text-white font-grotesk mb-1">
-                    ₹{m.avgPrice.toLocaleString()}<span className="text-sm font-normal text-slate-400">/sqft</span>
-                  </div>
-                  <div className="flex gap-4 mt-3">
-                    <div>
-                      <div className="text-xs text-slate-500 mb-1">Demand</div>
-                      <div className="flex items-center gap-2">
-                        <div className="progress-bar w-20" style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)' }}>
-                          <div className="h-full rounded-full" style={{ width: `${m.demandScore}%`, background: '#0ea5e9' }} />
-                        </div>
-                        <span className="text-xs text-sky-400">{m.demandScore}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {marketInsights.map((m, i) => (
+              <div key={i} className="glass rounded-2xl p-5 border border-white/8 card-hover">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white">{m.city}</h3>
+                  <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
+                    m.priceChange > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'
+                  }`}>
+                    <TrendingUp size={11} />
+                    +{m.priceChange}%
+                  </span>
+                </div>
+                <div className="text-xl font-bold text-white font-grotesk mb-1">
+                  ₹{m.avgPrice.toLocaleString()}<span className="text-sm font-normal text-slate-400">/sqft</span>
+                </div>
+                <div className="flex gap-4 mt-3">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Demand</div>
+                    <div className="flex items-center gap-2">
+                      <div className="progress-bar w-20" style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${m.demandScore}%`, background: '#0ea5e9' }} />
                       </div>
+                      <span className="text-xs text-sky-400">{m.demandScore}</span>
                     </div>
-                    <div>
-                      <div className="text-xs text-slate-500 mb-1">Investment</div>
-                      <div className="flex items-center gap-2">
-                        <div className="progress-bar w-20" style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)' }}>
-                          <div className="h-full rounded-full" style={{ width: `${m.investmentScore}%`, background: '#00ff88' }} />
-                        </div>
-                        <span className="text-xs text-emerald-400">{m.investmentScore}</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Investment</div>
+                    <div className="flex items-center gap-2">
+                      <div className="progress-bar w-20" style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${m.investmentScore}%`, background: '#00ff88' }} />
                       </div>
+                      <span className="text-xs text-emerald-400">{m.investmentScore}</span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="glass rounded-2xl p-6 border border-white/8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Price Trend 2024</h3>
               </div>
-              <div className="flex gap-2 flex-wrap mb-4">
-                {['Mumbai', 'Bangalore', 'Hyderabad', 'Delhi'].map((city) => (
-                  <button
-                    key={city}
-                    onClick={() => setActiveCity(city)}
-                    className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                      activeCity === city ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    {city}
-                  </button>
-                ))}
-              </div>
-              <LineChart
-                series={[{ label: activeCity, data: cityData, color: '#0ea5e9' }]}
-                labels={trendData.months}
-                height={160}
-              />
-              <div className="mt-3 text-xs text-slate-400 text-center">Average price per sqft (₹)</div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Building2, Mail, KeyRound, Loader2, ArrowRight, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -13,7 +14,7 @@ export default function LoginPage({ onLoginSuccess, onClose }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = 'http://localhost:8000/api/auth';
+  const API_BASE_URL = '${API_BASE_URL}/api/auth';
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();

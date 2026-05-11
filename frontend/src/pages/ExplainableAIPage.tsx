@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Zap, Loader2, Info, TrendingUp, TrendingDown } from 'lucide-react';
+import { Zap, Loader2, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { LOCATIONS } from '../data/mockData';
+import { API_BASE_URL } from '../config';
 
 export default function ExplainableAIPage() {
   const [loading, setLoading] = useState(false);
@@ -8,7 +10,7 @@ export default function ExplainableAIPage() {
   
   const [formData, setFormData] = useState({
     city: 'Mumbai',
-    location: 'Andheri',
+    location: 'Bandra',
     sqft: 1500,
     bhk: 3,
     bathrooms: 3,
@@ -24,7 +26,8 @@ export default function ExplainableAIPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
-      ...prev, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : type === 'number' ? Number(value) : value
+      ...prev, 
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : type === 'number' ? Number(value) : value
     }));
   };
 
@@ -32,7 +35,7 @@ export default function ExplainableAIPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/ml/predict', {
+      const response = await fetch('${API_BASE_URL}/api/ml/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -48,7 +51,7 @@ export default function ExplainableAIPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
       
-      {/* Input Form with ALL features */}
+      {/* Input Form with ALL features + Area/Location */}
       <div className="lg:col-span-4 glass rounded-3xl p-8 border border-white/10 h-fit">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-orange-500/20 rounded-xl text-orange-400">
@@ -64,54 +67,61 @@ export default function ExplainableAIPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1">City</label>
-              <select name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50">
-                {['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'].map(c => <option key={c}>{c}</option>)}
-              </select>
+              <div className="relative">
+                <select name="city" value={formData.city} 
+                  onChange={(e) => setFormData({...formData, city: e.target.value, location: LOCATIONS[e.target.value]?.[0] || ''})} 
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-orange-500/50">
+                  {['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'].map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Square Feet</label>
-              <input type="number" name="sqft" value={formData.sqft} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm text-slate-400 mb-1">BHK</label>
-              <input type="number" name="bhk" value={formData.bhk} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50" />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-400 mb-1">Baths</label>
-              <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50" />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-400 mb-1">Age</label>
-              <input type="number" name="age" value={formData.age} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50" />
+              <label className="block text-sm text-slate-400 mb-1">Location / Area</label>
+              <div className="relative">
+                <select name="location" value={formData.location} onChange={handleInputChange} 
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-orange-500/50">
+                  {(LOCATIONS[formData.city] || []).map((l: string) => <option key={l} value={l} className="bg-slate-900">{l}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
              <div>
               <label className="block text-sm text-slate-400 mb-1">Property Type</label>
-              <select name="type" value={formData.type} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50">
-                {['Apartment', 'Villa', 'Penthouse', 'Studio'].map(c => <option key={c}>{c}</option>)}
-              </select>
+              <div className="relative">
+                <select name="type" value={formData.type} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-orange-500/50">
+                  {['Apartment', 'Villa', 'Penthouse', 'Studio'].map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1">Market Status</label>
-              <select name="status" value={formData.status} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500/50">
-                {['For Sale', 'For Rent'].map(c => <option key={c}>{c}</option>)}
-              </select>
+              <div className="relative">
+                <select name="status" value={formData.status} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-orange-500/50">
+                  {['For Sale', 'For Rent'].map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-3">
-              <input type="checkbox" name="parking" checked={formData.parking} onChange={handleInputChange} className="w-5 h-5 rounded border-white/10 bg-black/20 text-orange-500 focus:ring-0" />
-              <label className="text-sm text-slate-300">Has Parking</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">SqFt</label>
+              <input type="number" name="sqft" value={formData.sqft} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-white outline-none focus:border-orange-500/50" />
             </div>
-            <select name="furnishing" value={formData.furnishing} onChange={handleInputChange} className="bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500/50 text-sm">
-                {['Furnished', 'Semi-Furnished', 'Unfurnished'].map(c => <option key={c}>{c}</option>)}
-            </select>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">BHK</label>
+              <input type="number" name="bhk" value={formData.bhk} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-white outline-none focus:border-orange-500/50" />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Age (Yrs)</label>
+              <input type="number" name="age" value={formData.age} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-white outline-none focus:border-orange-500/50" />
+            </div>
           </div>
 
           <button type="submit" disabled={loading} className="w-full mt-6 bg-orange-500 hover:bg-orange-400 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(249,115,22,0.3)] disabled:opacity-50">
@@ -120,7 +130,6 @@ export default function ExplainableAIPage() {
         </form>
       </div>
 
-      {/* Results Section */}
       <div className="lg:col-span-8">
         {result ? (
           <div className="space-y-6">
@@ -184,7 +193,7 @@ export default function ExplainableAIPage() {
           <div className="glass rounded-3xl p-8 border border-white/10 h-full flex flex-col items-center justify-center text-center opacity-50 min-h-[400px]">
             <Zap size={64} className="text-orange-500/30 mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">Deconstruct the Algorithm</h3>
-            <p className="text-slate-400 max-w-sm">Enter property details to visualize exactly how the machine learning model weights all features—from City to Amenities—to arrive at a price.</p>
+            <p className="text-slate-400 max-w-sm">Enter property details to visualize exactly how the machine learning model weights all features—from City and Neighborhood Location to Amenities—to arrive at a price.</p>
           </div>
         )}
       </div>

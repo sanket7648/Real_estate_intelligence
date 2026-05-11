@@ -84,6 +84,6 @@ export type Page =
   | 'appreciation'
   | 'area-recommendation'
   | 'map'
-  | 'dashboard'
+  //| 'dashboard'
   | 'chat'
   | 'profile';

@@ -1,9 +1,11 @@
-import { MapPin, BedDouble, Bath, Square, Star, Heart, ArrowUpRight } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Square, Star, ArrowUpRight } from 'lucide-react';
 import { Property } from '../../types';
+import FavoriteButton from './FavoriteButton';
 
 interface PropertyCardProps {
   property: Property;
   compact?: boolean;
+  onFavoriteChange?: (isFavorite: boolean) => void;
 }
 
 const furnishingColors = {
@@ -12,7 +14,7 @@ const furnishingColors = {
   Unfurnished: 'bg-slate-500/15 text-slate-400',
 };
 
-export default function PropertyCard({ property, compact }: PropertyCardProps) {
+export default function PropertyCard({ property, compact, onFavoriteChange }: PropertyCardProps) {
   const formatPrice = (price: number) => {
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
     if (price >= 100000) return `₹${(price / 100000).toFixed(0)}L`;
@@ -39,9 +41,19 @@ export default function PropertyCard({ property, compact }: PropertyCardProps) {
             {property.furnishing}
           </span>
         </div>
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:text-red-400 transition-colors">
-          <Heart size={14} />
-        </button>
+        <div className="absolute top-3 right-3 z-10">
+          <FavoriteButton
+            propertyId={property.id}
+            propertyTitle={property.title}
+            price={property.price}
+            location={property.location}
+            city={property.city}
+            image={property.image}
+            bhk={property.bhk}
+            sqft={property.sqft}
+            size="md"
+          />
+        </div>
         <div className="absolute bottom-3 left-3">
           <div className="text-xl font-bold text-white font-grotesk">{formatPrice(property.price)}</div>
           <div className="text-xs text-slate-300">₹{Math.round(property.price / property.sqft).toLocaleString()}/sqft</div>

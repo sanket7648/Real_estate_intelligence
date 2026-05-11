@@ -9,7 +9,7 @@ print("Loading real estate dataset...")
 df = pd.read_csv('real_estate_dataset_20000.csv')
 
 # We are now including EVERY critical feature from the CSV
-features = ['city', 'sqft', 'bhk', 'bathrooms', 'balcony', 'age', 'parking', 'furnishing', 'type', 'status', 'amenities', 'price']
+features = ['city', 'location', 'sqft', 'bhk', 'bathrooms', 'balcony', 'age', 'parking', 'furnishing', 'type', 'status', 'amenities', 'price']
 df = df[features].copy()
 
 print("Preprocessing data...")
@@ -25,7 +25,7 @@ X = df.drop('price', axis=1)
 y = df['price']
 
 # One-Hot Encode ALL text categories
-X_encoded = pd.get_dummies(X, columns=['city', 'furnishing', 'type', 'status'])
+X_encoded = pd.get_dummies(X, columns=['city', 'location', 'furnishing', 'type', 'status'])
 
 # Save layout
 feature_columns = list(X_encoded.columns)

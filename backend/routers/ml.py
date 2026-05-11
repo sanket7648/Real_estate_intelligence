@@ -69,6 +69,8 @@ def predict_price(data: PredictionInput, db: Session = Depends(database.get_db))
     for col in feature_columns:
         if col.startswith('city_'):
             input_data[col] = [1 if data.city == col.replace('city_', '') else 0]
+        elif col.startswith('location_'):
+            input_data[col] = [1 if data.location == col.replace('location_', '') else 0]
         elif col.startswith('furnishing_'):
             input_data[col] = [1 if data.furnishing == col.replace('furnishing_', '') else 0]
         elif col.startswith('type_'):
@@ -122,21 +124,57 @@ def predict_price(data: PredictionInput, db: Session = Depends(database.get_db))
 
     # 4. Generate Explainability text & fetch Alternatives
     deal_reason = "Analysis complete."
+    explanation = "Analysis complete."
+    
     if data.askingPrice:
         diff = ((data.askingPrice - final_price) / final_price) * 100
-        if diff > 5: deal_reason = f"Overpriced by {abs(int(diff))}%. AI valuation is lower."
-        elif diff < -5: deal_reason = f"Great Deal! Underpriced by {abs(int(diff))}%. "
-        else: deal_reason = "Fairly Priced according to AI."
+        price_per_sqft_asking = data.askingPrice / data.sqft
+        price_per_sqft_predicted = final_price / data.sqft
+        
+        # Generate detailed deal reason with context
+        if diff > 15:
+            deal_reason = f"Significantly Overpriced by {abs(int(diff))}%! At ₹{int(price_per_sqft_asking)}/sqft vs AI valuation of ₹{int(price_per_sqft_predicted)}/sqft. This {data.bhk}-BHK property in {data.city} should cost ₹{int(final_price/100000)}L, not ₹{int(data.askingPrice/100000)}L."
+        elif diff > 5:
+            deal_reason = f"Overpriced by {abs(int(diff))}%. The asking price (₹{int(price_per_sqft_asking)}/sqft) exceeds market value (₹{int(price_per_sqft_predicted)}/sqft). Consider negotiating or exploring alternatives in {data.city}."
+        elif diff < -15:
+            deal_reason = f"Exceptional Deal! Underpriced by {abs(int(diff))}%! At ₹{int(price_per_sqft_asking)}/sqft vs market rate of ₹{int(price_per_sqft_predicted)}/sqft. This {data.bhk}-BHK property is a {abs(int(diff))}% below market value - act quickly!"
+        elif diff < -5:
+            deal_reason = f"Good Deal! Underpriced by {abs(int(diff))}%. Asking price (₹{int(price_per_sqft_asking)}/sqft) is below market value (₹{int(price_per_sqft_predicted)}/sqft). Recommended for buyers seeking value."
+        else:
+            deal_reason = f"Fairly Priced. The asking price (₹{int(price_per_sqft_asking)}/sqft) aligns with AI valuation (₹{int(price_per_sqft_predicted)}/sqft). Market conditions in {data.city} support this valuation."
+    
+    # Get top 3 features for better explanation
+    top_features = feature_impacts[:3] if feature_impacts else []
+    top_features_text = ", ".join([f"{f['feature']} ({f['importance']:.1f}%)" for f in top_features]) if top_features else "property characteristics"
+    
+    explanation = f"AI analyzed {len(feature_impacts)} property parameters. Key value drivers: {top_features_text}. Property age ({data.age}y) affects {[f for f in feature_impacts if 'Age' in f['feature']][0]['importance']:.1f}% of valuation. Market location and amenities significantly impact final estimate."
+
+    # Calculate confidence score based on feature importance variance and property data quality
+    # Higher importance variance = more confident prediction
+    if feature_impacts:
+        importances_values = [f['importance'] for f in feature_impacts]
+        avg_importance = sum(importances_values) / len(importances_values)
+        variance = sum((x - avg_importance) ** 2 for x in importances_values) / len(importances_values)
+        confidence = min(98, max(82, int(90 + (variance / 10))))
+    else:
+        confidence = 85
+    
+    # Adjust confidence based on data completeness
+    if len(data.amenities) > 0: confidence += 2
+    if data.age < 10: confidence += 1
+    if data.parking: confidence += 1
+    
+    confidence = min(99, confidence)
 
     alts = db.query(models.Property).filter(models.Property.city == data.city, models.Property.bhk == data.bhk).limit(3).all()
     real_alts = [{"id": p.id, "title": p.title, "price": p.price, "location": p.location, "image": p.image, "bhk": p.bhk, "sqft": p.sqft} for p in alts]
 
     return {
         "predictedPrice": final_price,
-        "confidenceScore": int(min(max(95 - (data.age * 0.2), 80), 98)), 
+        "confidenceScore": confidence, 
         "priceRange": {"min": int(final_price * 0.90), "max": int(final_price * 1.10)},
         "bestAlternatives": real_alts,
         "dealReason": deal_reason,
         "featureImportance": feature_impacts, # ALL features returned, no slicing
-        "explanation": f"The Random Forest AI analyzed all {len(feature_impacts)} provided parameters."
+        "explanation": explanation
     }

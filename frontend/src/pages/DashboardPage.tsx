@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, BarChart3, Home, Activity, DollarSign, Loader
 import StatCard from '../components/ui/StatCard';
 import LineChart from '../components/ui/LineChart';
 import BarChart from '../components/ui/BarChart';
+import { API_BASE_URL } from '../config';
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -11,7 +12,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/market/dashboard');
+        const response = await fetch('${API_BASE_URL}/api/market/dashboard');
         if (response.ok) {
           const result = await response.json();
           setData(result);

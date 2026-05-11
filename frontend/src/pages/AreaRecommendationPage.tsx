@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Shield, Zap, Home, Loader2, ArrowUpRight } from 'lucide-react';
+import FavoriteButton from '../components/ui/FavoriteButton';
+import { API_BASE_URL } from '../config';
+
 
 export default function AreaRecommendationPage() {
   const [city, setCity] = useState('Bangalore');
@@ -8,7 +11,7 @@ export default function AreaRecommendationPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/market/recommendations?city=${city}`)
+    fetch(`${API_BASE_URL}/api/market/recommendations?city=${city}`)
       .then(res => res.json())
       .then(data => {
         setRecommendations(data);
@@ -60,6 +63,22 @@ export default function AreaRecommendationPage() {
               <div className="h-48 overflow-hidden relative flex-shrink-0">
                 <img src={rec.image} alt={rec.area} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a1128] via-[#0a1128]/40 to-transparent"></div>
+
+                {/* Favorites */}
+                <div className="absolute top-3 right-3 z-10">
+                  <FavoriteButton
+                    propertyId={String(rec.id ?? rec.area)}
+                    propertyTitle={rec.area}
+                    price={Number(rec.avgPrice ?? 0)}
+                    location={rec.area}
+                    city={city}
+                    image={rec.image}
+                    bhk={1}
+                    sqft={1}
+                    size="sm"
+                  />
+                </div>
+
                 <div className="absolute bottom-4 left-4 right-4">
                   <div className="flex justify-between items-end">
                     <div>

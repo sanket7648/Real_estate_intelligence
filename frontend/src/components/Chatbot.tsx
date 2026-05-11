@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Sparkles, MessageSquare, ChevronDown } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface Message {
   id: string;
@@ -44,7 +45,7 @@ export default function Chatbot() {
     setIsTyping(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/chat/', {
+      const response = await fetch('${API_BASE_URL}/api/chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // Send the message AND the current memory context

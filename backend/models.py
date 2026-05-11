@@ -52,3 +52,18 @@ class UserProfile(Base):
     target_city = Column(String)
     target_bhk = Column(String)
     max_budget = Column(String)
+
+class FavoriteProperty(Base):
+    __tablename__ = "favorite_properties"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True, nullable=False)
+    property_id = Column(String, nullable=False)
+    property_title = Column(String, nullable=False)
+    property_price = Column(Integer, nullable=False)
+    property_location = Column(String, nullable=False)
+    property_city = Column(String, nullable=False)
+    property_image = Column(String, nullable=False)
+    property_bhk = Column(Integer, nullable=False)
+    property_sqft = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

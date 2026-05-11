@@ -9,7 +9,7 @@ import FairPricePage from './pages/FairPricePage';
 import AppreciationPage from './pages/AppreciationPage';
 import AreaRecommendationPage from './pages/AreaRecommendationPage';
 import MapPage from './pages/MapPage';
-import DashboardPage from './pages/DashboardPage';
+//import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import { Page } from './types';
@@ -22,7 +22,7 @@ const pageConfig: Record<Page, { title: string; subtitle: string }> = {
   appreciation: { title: 'Appreciation Forecast', subtitle: '6-year investment projection' },
   'area-recommendation': { title: 'Area Recommender', subtitle: 'Find your perfect neighborhood' },
   map: { title: 'Property Map', subtitle: 'Interactive real estate heatmap' },
-  dashboard: { title: 'Analytics Dashboard', subtitle: 'Live market intelligence' },
+  //dashboard: { title: 'Analytics Dashboard', subtitle: 'Live market intelligence' },
   profile: { title: 'User Profile', subtitle: 'Manage your data and preferences' }
 };
 
@@ -156,7 +156,7 @@ function App() {
           {currentPage === 'appreciation' && <AppreciationPage />}
           {currentPage === 'area-recommendation' && <AreaRecommendationPage />}
           {currentPage === 'map' && <MapPage />}
-          {currentPage === 'dashboard' && <DashboardPage />}
+          {/*{currentPage === 'dashboard' && <DashboardPage />}*/}
           {currentPage === 'profile' && <ProfilePage />}
         </main>
       </div>

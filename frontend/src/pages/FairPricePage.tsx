@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Shield, IndianRupee, MapPin, Loader2, TrendingDown, TrendingUp, Minus, Scale, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { Shield, MapPin, Loader2, TrendingDown, Scale, AlertCircle, CheckCircle2, Info, ChevronDown } from 'lucide-react';
+import FavoriteButton from '../components/ui/FavoriteButton';
+import { LOCATIONS } from '../data/mockData';
+import { API_BASE_URL } from '../config';
 
 export default function FairPricePage() {
   const [loading, setLoading] = useState(false);
@@ -16,7 +19,9 @@ export default function FairPricePage() {
     parking: true,
     furnishing: 'Semi-Furnished',
     age: 2,
-    amenities: ['Security']
+    type: 'Apartment',
+    status: 'For Sale',
+    amenities: ['Security', 'Gym']
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -33,7 +38,7 @@ export default function FairPricePage() {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8000/api/ml/predict', {
+      const response = await fetch('${API_BASE_URL}/api/ml/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -88,24 +93,60 @@ export default function FairPricePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1">City</label>
-              <select name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-sky-500/50">
-                {['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'].map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <div className="relative">
+                <select name="city" value={formData.city} 
+                  onChange={(e) => setFormData({...formData, city: e.target.value, location: LOCATIONS[e.target.value]?.[0] || ''})} 
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-sky-500/50">
+                  {['Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'].map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Square Feet</label>
-              <input type="number" name="sqft" value={formData.sqft} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-sky-500/50" />
+              <label className="block text-sm text-slate-400 mb-1">Location / Area</label>
+              <div className="relative">
+                <select name="location" value={formData.location} onChange={handleInputChange} 
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-sky-500/50">
+                  {(LOCATIONS[formData.city] || []).map((l: string) => <option key={l} value={l} className="bg-slate-900">{l}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-400 mb-1">BHK</label>
-              <input type="number" name="bhk" value={formData.bhk} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-sky-500/50" />
+              <label className="block text-sm text-slate-400 mb-1">Property Type</label>
+              <div className="relative">
+                <select name="type" value={formData.type} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-sky-500/50">
+                  {['Apartment', 'Villa', 'Penthouse', 'Studio'].map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Age (Years)</label>
-              <input type="number" name="age" value={formData.age} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-sky-500/50" />
+              <label className="block text-sm text-slate-400 mb-1">Market Status</label>
+              <div className="relative">
+                <select name="status" value={formData.status} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none outline-none focus:border-sky-500/50">
+                  {['For Sale', 'For Rent'].map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">SqFt</label>
+              <input type="number" name="sqft" value={formData.sqft} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-white outline-none focus:border-sky-500/50" />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">BHK</label>
+              <input type="number" name="bhk" value={formData.bhk} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-white outline-none focus:border-sky-500/50" />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Age (Yrs)</label>
+              <input type="number" name="age" value={formData.age} onChange={handleInputChange} className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-white outline-none focus:border-sky-500/50" />
             </div>
           </div>
 
@@ -126,7 +167,6 @@ export default function FairPricePage() {
               return (
                 <div className={`glass rounded-3xl overflow-hidden border ${status.border} transition-all`}>
                   
-                  {/* Banner / Reason Box */}
                   <div className={`p-4 ${status.bg} flex items-start gap-3 border-b ${status.border}`}>
                     <StatusIcon className={`mt-1 flex-shrink-0 ${status.color}`} size={20} />
                     <div>
@@ -135,7 +175,6 @@ export default function FairPricePage() {
                     </div>
                   </div>
 
-                  {/* Price Comparison */}
                   <div className="p-8 flex flex-col md:flex-row items-center gap-8 justify-between">
                     <div className="text-center md:text-left">
                       <p className="text-slate-400 text-sm mb-1">Asking Price</p>
@@ -175,7 +214,23 @@ export default function FairPricePage() {
                     
                     return (
                       <div key={prop.id || index} className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-colors group">
-                        <img src={prop.image} alt={prop.title} className="w-full sm:w-24 h-20 rounded-xl object-cover" />
+                        <div className="relative">
+                          <img src={prop.image} alt={prop.title} className="w-full sm:w-24 h-20 rounded-xl object-cover" />
+                          <div className="absolute top-1 right-1 z-[30]" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton
+                              propertyId={String(prop.id ?? index)}
+                              propertyTitle={prop.title}
+                              price={Number(prop.price ?? 0)}
+                              location={prop.location}
+                              city={formData.city}  // Safety fallback for favorite button
+                              image={prop.image}
+                              bhk={Number(prop.bhk ?? 1)}
+                              sqft={Number(prop.sqft ?? 1)}
+                              size="sm"
+                              showLabel={false}
+                            />
+                          </div>
+                        </div>
                         
                         <div className="flex-1 text-center sm:text-left">
                           <h4 className="text-white font-semibold line-clamp-1 group-hover:text-emerald-400 transition-colors">{prop.title}</h4>
@@ -214,7 +269,7 @@ export default function FairPricePage() {
           <div className="glass rounded-3xl p-8 border border-white/10 h-full flex flex-col items-center justify-center text-center opacity-50 min-h-[400px]">
             <Scale size={64} className="text-emerald-500/30 mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">Evaluate Real Estate Deals</h3>
-            <p className="text-slate-400 max-w-sm">Enter the seller's asking price. Our AI will analyze the true value, provide a specific reason for the price gap, and find better alternatives.</p>
+            <p className="text-slate-400 max-w-sm">Enter the seller's asking price. Our AI will analyze the true value, provide a specific reason for the price gap, and find better alternatives in the same neighborhood.</p>
           </div>
         )}
       </div>

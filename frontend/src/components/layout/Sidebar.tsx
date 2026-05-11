@@ -19,7 +19,7 @@ const navItems: { id: Page; label: string; icon: typeof Home; badge?: string }[]
   { id: 'appreciation', label: 'Appreciation Forecast', icon: TrendingUp },
   { id: 'area-recommendation', label: 'Area Recommender', icon: MapPin, badge: 'AI' },
   { id: 'map', label: 'Property Map', icon: Map },
-  { id: 'dashboard', label: 'Analytics Dashboard', icon: BarChart3 }
+  //{ id: 'dashboard', label: 'Analytics Dashboard', icon: BarChart3 }
 ];
 
 export default function Sidebar({ currentPage, onNavigate, onCollapsedChange }: SidebarProps) {
@@ -74,8 +74,8 @@ export default function Sidebar({ currentPage, onNavigate, onCollapsedChange }: 
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <div className="text-sm font-bold text-white font-grotesk leading-tight">AI Estate</div>
-            <div className="text-xs text-sky-400">Intelligence System</div>
+            <div className="text-sm font-bold text-white font-grotesk leading-tight">HomeSite AI</div>
+            {/*<div className="text-xs text-sky-400">Intelligence System</div>*/}
           </div>
         )}
       </div>
