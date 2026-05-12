@@ -24,6 +24,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # 7. Copy the rest of the backend application code
 COPY . .
 
-EXPOSE 7860
+EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

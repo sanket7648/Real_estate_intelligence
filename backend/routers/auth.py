@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 import random
 import os
-import requests  # <-- Replaced smtplib with requests!
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from jose import jwt
 from dotenv import load_dotenv
 
@@ -17,6 +19,12 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
 
+# Email config
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_EMAIL = os.getenv("SMTP_EMAIL")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -24,37 +32,26 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def send_email_otp(to_email: str, otp: str):
-    api_key = os.getenv("RESEND_API_KEY")
-    
-    # Fallback to printing in the logs if you haven't set your API key yet
-    if not api_key:
+    if not SMTP_EMAIL or not SMTP_PASSWORD:
         print("=========================================")
-        print(f"🚨 MOCK EMAIL (No API Key Found) 🚨")
-        print(f"To: {to_email}")
-        print(f"OTP: {otp}")
+        print(f"🚨 MOCK EMAIL to {to_email}: OTP is {otp} 🚨") 
         print("=========================================")
         return
         
     try:
-        # Send email via HTTP Request (Port 443) which Hugging Face allows!
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        data = {
-            "from": "onboarding@resend.dev", # Resend's default testing email
-            "to": [to_email],
-            "subject": "Your HomeSite AI Login Code",
-            "html": f"Hello,<br><br>Your login code is: <strong>{otp}</strong><br><br>This code will expire in 5 minutes."
-        }
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_EMAIL
+        msg['To'] = to_email
+        msg['Subject'] = "Your Real Estate AI Login Code"
 
-        response = requests.post("https://api.resend.com/emails", headers=headers, json=data)
-        
-        if response.status_code != 200:
-            print(f"Failed to send email via Resend: {response.text}")
-            raise HTTPException(status_code=500, detail="Email service error. Try again later.")
-            
+        body = f"Hello,\n\nYour login code is: {otp}\n\nThis code will expire in 5 minutes."
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls() # Secure the connection
+        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
     except Exception as e:
         print(f"Failed to send email: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email. Please try again.")
@@ -72,7 +69,7 @@ def send_otp(request: schemas.SendOTPRequest, db: Session = Depends(database.get
     db.add(new_otp)
     db.commit()
 
-    # Call the new HTTP email function
+    # Call the actual email sending function
     send_email_otp(request.email, otp_code)
 
     return {"message": "OTP sent successfully"}
